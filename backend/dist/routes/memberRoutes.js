@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const memberController_1 = require("../controllers/memberController");
+const auth_1 = require("../middleware/auth");
+const router = (0, express_1.Router)();
+router.get('/flats', memberController_1.getFlats);
+router.get('/flats/:flatNumber', memberController_1.getFlatByNumber);
+router.patch('/flats/:flatNumber', auth_1.authenticateToken, auth_1.requireAdmin, memberController_1.updateResident);
+exports.default = router;

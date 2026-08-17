@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const financialYearController_1 = require("../controllers/financialYearController");
+const router = (0, express_1.Router)();
+router.get('/', financialYearController_1.financialYearController.getAll);
+router.get('/current', financialYearController_1.financialYearController.getCurrent);
+router.post('/', financialYearController_1.financialYearController.create);
+router.patch('/:id/activate', financialYearController_1.financialYearController.activate);
+router.patch('/:id/lock', financialYearController_1.financialYearController.lock);
+exports.default = router;

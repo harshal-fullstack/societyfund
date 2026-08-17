@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const maintenanceController_1 = require("../controllers/maintenanceController");
+const auth_1 = require("../middleware/auth");
+const router = (0, express_1.Router)();
+router.get('/', maintenanceController_1.getInvoices);
+router.post('/:id/pay', auth_1.authenticateToken, maintenanceController_1.payInvoice);
+router.patch('/:id/approve', auth_1.authenticateToken, auth_1.requireAdmin, maintenanceController_1.approvePayment);
+router.post('/auto-reconcile', auth_1.authenticateToken, auth_1.requireAdmin, maintenanceController_1.autoReconcile);
+router.post('/generate-batch', auth_1.authenticateToken, auth_1.requireAdmin, maintenanceController_1.generateBatchInvoices);
+exports.default = router;

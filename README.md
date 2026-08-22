@@ -1,4 +1,4 @@
-<![CDATA[# 🏢 SocietyFund — Housing Society Financial Transparency & Management Platform
+# 🏢 SocietyFund — Housing Society Financial Transparency & Management Platform
 
 > A production-grade, full-stack web application built to eliminate financial opacity, manual bookkeeping errors, and delayed reporting in Indian cooperative housing societies. Features **real-time dashboards**, **statutory fund management**, **automated maintenance billing**, **certified PDF exports**, and **tamper-evident audit trails** — all accessible via role-based portals for Treasurers and Residents.
 
@@ -514,4 +514,3 @@ This project is private and intended for housing society financial management us
 <p align="center">
   Built with ❤️ for transparent housing society governance.
 </p>
-]]>

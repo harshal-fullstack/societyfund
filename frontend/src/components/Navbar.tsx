@@ -1,23 +1,13 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Building2,
-  Shield,
-  User,
   LogOut,
-  ChevronDown,
-  Sparkles,
-  Users,
-  KeyRound,
   Home
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { ResidentSwitcherModal } from './ResidentSwitcherModal';
-import { LoginModal } from './LoginModal';
 
 export const Navbar: React.FC = () => {
-  const { user, role, switchRole, logout } = useAuth();
-  const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const { user, role, logout } = useAuth();
 
   return (
     <header className="navbar">
@@ -77,27 +67,6 @@ export const Navbar: React.FC = () => {
           <span>Real-time Ledger Active</span>
         </div>
 
-        {/* Multi-Resident Switcher Button */}
-        <button
-          className="btn btn-secondary btn-sm"
-          onClick={() => setIsSwitcherOpen(true)}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.45rem',
-            padding: '0.4rem 0.75rem',
-            borderRadius: 'var(--radius-full)',
-            border: '1px solid var(--border-medium)',
-            background: 'var(--bg-surface)'
-          }}
-        >
-          <Users size={14} color="var(--primary-600)" />
-          <span style={{ fontSize: '0.78rem', fontWeight: 600 }}>
-            {role === 'resident' ? `Flat ${user?.flatNumber || 'A-402'} (${user?.name?.split(' ')[0]})` : 'Switch Resident (16 Flats)'}
-          </span>
-          <ChevronDown size={13} color="var(--text-muted)" />
-        </button>
-
         {/* Current Role Indicator / Profile Badge */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
           <img
@@ -132,18 +101,7 @@ export const Navbar: React.FC = () => {
           <span>Sign Out</span>
         </button>
       </div>
-
-      {/* Resident Switcher Modal (16 Flats) */}
-      <ResidentSwitcherModal
-        isOpen={isSwitcherOpen}
-        onClose={() => setIsSwitcherOpen(false)}
-      />
-
-      {/* Login Modal */}
-      <LoginModal
-        isOpen={isLoginModalOpen}
-        onClose={() => setIsLoginModalOpen(false)}
-      />
     </header>
   );
 };
+

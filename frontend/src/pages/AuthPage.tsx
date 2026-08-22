@@ -18,9 +18,11 @@ import {
   UserCheck
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../components/ToastNotification';
 
 export const AuthPage: React.FC = () => {
   const { login, register, switchRole } = useAuth();
+  const { showToast } = useToast();
   const [tab, setTab] = useState<'login' | 'signup'>('login');
   
   // Login form state
@@ -49,8 +51,11 @@ export const AuthPage: React.FC = () => {
 
     try {
       await login(loginIdentifier, loginPassword);
+      showToast('success', '✅ Login Successful!', `Welcome back! Redirecting to your dashboard...`, 3500);
     } catch (err: any) {
-      setError(err.message || 'Login failed. Please check your credentials.');
+      const errMsg = err.message || 'Login failed. Please check your credentials.';
+      setError(errMsg);
+      showToast('error', '❌ Login Failed', errMsg, 5000);
     } finally {
       setIsSubmitting(false);
     }
@@ -64,6 +69,7 @@ export const AuthPage: React.FC = () => {
 
     if (!signupName.trim() || !signupEmail.trim() || !signupPassword.trim()) {
       setError('Please fill in all required fields.');
+      showToast('warning', '⚠️ Missing Fields', 'Please fill in all required fields.', 4000);
       setIsSubmitting(false);
       return;
     }
@@ -78,8 +84,11 @@ export const AuthPage: React.FC = () => {
         role: signupRole
       });
       setSuccessMsg('Account registered successfully! Accessing your portal...');
+      showToast('success', '✅ Registration Successful!', `Welcome ${signupName.trim()}! Your account has been created.`, 4000);
     } catch (err: any) {
-      setError(err.message || 'Registration failed. Please try again.');
+      const errMsg = err.message || 'Registration failed. Please try again.';
+      setError(errMsg);
+      showToast('error', '❌ Registration Failed', errMsg, 5000);
     } finally {
       setIsSubmitting(false);
     }
@@ -90,8 +99,10 @@ export const AuthPage: React.FC = () => {
     setIsSubmitting(true);
     try {
       await switchRole(targetRole, flatNo);
+      showToast('success', '✅ Quick Login Successful!', `Signed in as ${targetRole === 'admin' ? 'Committee Admin' : `Resident (Flat ${flatNo})`}`, 3500);
     } catch (err: any) {
       setError('Quick login failed. Please try the regular login form.');
+      showToast('error', '❌ Quick Login Failed', 'Please try the regular login form instead.', 5000);
     } finally {
       setIsSubmitting(false);
     }

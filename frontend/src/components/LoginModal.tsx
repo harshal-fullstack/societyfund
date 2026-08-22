@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, LogIn, Key, User, Home, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from './ToastNotification';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -11,6 +12,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   const { login } = useAuth();
+  const { showToast } = useToast();
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('password123');
   const [error, setError] = useState('');
@@ -23,9 +25,12 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
 
     try {
       await login(identifier, password);
+      showToast('success', '✅ Login Successful!', `Welcome! Redirecting to your dashboard...`, 3500);
       onClose();
     } catch (err: any) {
-      setError(err.message || 'Invalid Flat Number or Email credentials.');
+      const errMsg = err.message || 'Invalid Flat Number or Email credentials.';
+      setError(errMsg);
+      showToast('error', '❌ Login Failed', errMsg, 5000);
     } finally {
       setIsSubmitting(false);
     }

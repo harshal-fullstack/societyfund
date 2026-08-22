@@ -74,7 +74,12 @@ class DataStoreService {
   }
 
   hasData(): boolean {
-    return this.data.flats.length > 0 && this.data.invoices.length > 0;
+    return (this.data.categories && this.data.categories.length > 0) && (this.data.reserveFunds && this.data.reserveFunds.length > 0);
+  }
+
+  async seedAll(initialData: MemoryData) {
+    this.data = { ...this.data, ...initialData };
+    this.saveToDisk();
   }
 
   private loadFromDisk() {
@@ -217,6 +222,31 @@ class DataStoreService {
   async saveFlats(flats: IFlat[]) {
     this.data.flats = flats;
     this.saveToDisk();
+  }
+
+  async addFlat(flat: IFlat): Promise<IFlat> {
+    if (!this.data.flats) this.data.flats = [];
+    const existingIndex = this.data.flats.findIndex(f => f.flatNumber.toUpperCase() === flat.flatNumber.toUpperCase());
+    if (existingIndex >= 0) {
+      this.data.flats[existingIndex] = { ...this.data.flats[existingIndex], ...flat };
+      this.saveToDisk();
+      return this.data.flats[existingIndex];
+    } else {
+      this.data.flats.push(flat);
+      this.saveToDisk();
+      return flat;
+    }
+  }
+
+  async deleteFlat(flatNumber: string): Promise<boolean> {
+    if (!this.data.flats) return false;
+    const prevLen = this.data.flats.length;
+    this.data.flats = this.data.flats.filter(f => f.flatNumber.toUpperCase() !== flatNumber.toUpperCase());
+    if (this.data.flats.length !== prevLen) {
+      this.saveToDisk();
+      return true;
+    }
+    return false;
   }
 
   // ═══════════════════════════════════════════════

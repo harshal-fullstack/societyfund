@@ -1,13 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'societyfund_jwt_secret_dev_key_2026';
+export const JWT_SECRET = process.env.JWT_SECRET || 'societyfund_jwt_secret_production_key_2026';
 
 export interface AuthRequest extends Request {
   user?: {
     id: string;
     email: string;
-    role: 'admin' | 'resident';
+    role: 'admin' | 'resident' | 'treasurer';
     name: string;
     flatNumber?: string;
   };
@@ -18,7 +18,6 @@ export const authenticateToken = (req: AuthRequest, res: Response, next: NextFun
   const token = authHeader && authHeader.split(' ')[1];
 
   if (!token) {
-    // If no token provided, we allow mock/demo fallback or reject
     return res.status(401).json({ message: 'Access token required' });
   }
 
@@ -32,7 +31,7 @@ export const authenticateToken = (req: AuthRequest, res: Response, next: NextFun
 };
 
 export const requireAdmin = (req: AuthRequest, res: Response, next: NextFunction) => {
-  if (!req.user || req.user.role !== 'admin') {
+  if (!req.user || (req.user.role !== 'admin' && req.user.role !== 'treasurer')) {
     return res.status(403).json({ message: 'Access denied: Admin privileges required' });
   }
   next();

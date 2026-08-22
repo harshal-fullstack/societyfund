@@ -17,6 +17,7 @@ export interface IUser {
   avatar?: string;
   isActive?: boolean;
   lastLogin?: string;
+  mustChangePassword?: boolean;
   passwordResetToken?: string;
   createdAt?: Date;
 }

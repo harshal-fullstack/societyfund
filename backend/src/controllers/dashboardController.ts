@@ -11,8 +11,11 @@ export const getDashboardStats = async (req: Request, res: Response) => {
     // 1. Total Reserve Fund Balance
     const totalReserveFundBalance = reserveFunds.reduce((sum, f) => sum + f.currentBalance, 0);
 
-    // 2. Current Month Calculation (e.g. August 2026)
-    const currentMonthPrefix = '2026-08';
+    // 2. Current Month Calculation based on system date
+    const now = new Date();
+    const currentMonthPrefix = now.toISOString().slice(0, 7); // e.g. 2026-08
+    const currentMonthName = now.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+
     const currentMonthTxs = transactions.filter(t => t.date.startsWith(currentMonthPrefix) && t.status === 'approved');
 
     const monthlyIncome = currentMonthTxs
@@ -26,16 +29,18 @@ export const getDashboardStats = async (req: Request, res: Response) => {
     const netMonthlySurplus = monthlyIncome - monthlyExpenses;
 
     // 3. Maintenance Collection Rate & Overdue
-    const currentMonthInvoices = invoices.filter(i => i.billingMonth === 'August 2026');
-    const totalBilled = currentMonthInvoices.reduce((sum, i) => sum + i.totalAmount, 0);
-    const totalCollected = currentMonthInvoices
+    const currentMonthInvoices = invoices.filter(i => i.billingMonth === currentMonthName || i.issueDate?.startsWith(currentMonthPrefix));
+    const relevantInvoices = currentMonthInvoices.length > 0 ? currentMonthInvoices : invoices;
+
+    const totalBilled = relevantInvoices.reduce((sum, i) => sum + i.totalAmount, 0);
+    const totalCollected = relevantInvoices
       .filter(i => i.status === 'paid')
       .reduce((sum, i) => sum + i.totalAmount, 0);
     const totalOverdue = invoices
       .filter(i => i.status === 'overdue')
       .reduce((sum, i) => sum + i.totalAmount, 0);
 
-    const collectionRate = totalBilled > 0 ? Math.round((totalCollected / totalBilled) * 100) : 100;
+    const collectionRate = totalBilled > 0 ? Math.round((totalCollected / totalBilled) * 100) : (invoices.length === 0 ? 100 : 0);
 
     // 4. Category-wise Expense Breakdown
     const expenseByCategory: Record<string, number> = {};
@@ -50,15 +55,26 @@ export const getDashboardStats = async (req: Request, res: Response) => {
       amount: expenseByCategory[cat]
     })).sort((a, b) => b.amount - a.amount);
 
-    // 5. 6-Month Income vs Expense Trend
-    const monthlyTrends = [
-      { month: 'Mar 26', income: 142000, expenses: 108000, surplus: 34000 },
-      { month: 'Apr 26', income: 148000, expenses: 115000, surplus: 33000 },
-      { month: 'May 26', income: 151000, expenses: 122000, surplus: 29000 },
-      { month: 'Jun 26', income: 146000, expenses: 98000, surplus: 48000 },
-      { month: 'Jul 26', income: 154000, expenses: 135000, surplus: 19000 },
-      { month: 'Aug 26', income: monthlyIncome || 173500, expenses: monthlyExpenses || 160800, surplus: (monthlyIncome - monthlyExpenses) }
-    ];
+    // 5. Dynamic 6-Month Income vs Expense Trend
+    const monthlyTrends = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const mStr = d.toISOString().slice(0, 7);
+      const label = d.toLocaleString('en-US', { month: 'short', year: '2-digit' });
+      const mInc = transactions
+        .filter(t => t.date.startsWith(mStr) && t.type === 'income' && t.status === 'approved')
+        .reduce((sum, t) => sum + t.amount, 0);
+      const mExp = transactions
+        .filter(t => t.date.startsWith(mStr) && t.type === 'expense' && t.status === 'approved')
+        .reduce((sum, t) => sum + t.amount, 0);
+
+      monthlyTrends.push({
+        month: label,
+        income: mInc,
+        expenses: mExp,
+        surplus: mInc - mExp
+      });
+    }
 
     // 6. Recent Real-time Transparency Ledger
     const recentTransparencyLedger = transactions.slice(0, 7);
@@ -74,7 +90,7 @@ export const getDashboardStats = async (req: Request, res: Response) => {
         totalOverdue,
         collectionRate,
         totalFlats: flats.length,
-        occupiedFlats: flats.length // all occupied in demo
+        occupiedFlats: flats.filter(f => f.isOccupied !== false).length
       },
       categoryBreakdown,
       monthlyTrends,

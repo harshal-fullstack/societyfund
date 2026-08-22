@@ -16,6 +16,7 @@ export interface User {
   avatar?: string;
   isActive?: boolean;
   lastLogin?: string;
+  mustChangePassword?: boolean;
 }
 
 // ─── 2. Flats ────────────────────────────────────

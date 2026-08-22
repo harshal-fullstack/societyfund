@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { ToastProvider } from './components/ToastNotification';
 import { Navbar } from './components/Navbar';
 import { Sidebar } from './components/Sidebar';
+import { FirstTimePasswordModal } from './components/FirstTimePasswordModal';
 import { AuthPage } from './pages/AuthPage';
 import { Dashboard } from './pages/Dashboard';
 import { MyFlat } from './pages/MyFlat';
@@ -48,6 +49,7 @@ export const MainLayout: React.FC = () => {
           {activeTab === 'adminControls' && role === 'admin' && <AdminControls />}
         </main>
       </div>
+      <FirstTimePasswordModal />
     </div>
   );
 };
@@ -100,4 +102,3 @@ export const App: React.FC = () => {
 };
 
 export default App;
-

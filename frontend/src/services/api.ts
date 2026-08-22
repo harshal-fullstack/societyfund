@@ -60,8 +60,8 @@ class ApiService {
   }
 
   // Auth - supports login via email OR flat number (e.g. "A-101", "B-201")
-  async login(identifier: string, password: string = 'password123'): Promise<{ token: string; user: User }> {
-    const isFlat = /^[AB]-[1-4]0[1-2]$/i.test(identifier.trim());
+  async login(identifier: string, password: string): Promise<{ token: string; user: User }> {
+    const isFlat = /^[A-Za-z]+-[0-9]+/i.test(identifier.trim());
     const body = isFlat
       ? { flatNumber: identifier.trim().toUpperCase(), password }
       : { email: identifier.trim(), password };
@@ -91,6 +91,22 @@ class ApiService {
     });
     this.setToken(res.token);
     return res;
+  }
+
+  async changePassword(newPassword: string): Promise<{ message: string; token: string; user: User }> {
+    const res = await this.request<{ message: string; token: string; user: User }>('/auth/change-password', {
+      method: 'POST',
+      body: JSON.stringify({ newPassword })
+    });
+    if (res.token) this.setToken(res.token);
+    return res;
+  }
+
+  async adminResetPassword(data: { flatNumber?: string; email?: string; temporaryPassword?: string }): Promise<{ message: string; temporaryPassword: string; email: string; flatNumber: string }> {
+    return this.request<{ message: string; temporaryPassword: string; email: string; flatNumber: string }>('/auth/admin-reset-password', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
   }
 
   async getMe(): Promise<{ user: User }> {
@@ -250,10 +266,23 @@ class ApiService {
     return this.request<{ flat: Flat; invoices: MaintenanceInvoice[] }>(`/members/flats/${flatNumber}`);
   }
 
+  async createFlat(data: Partial<Flat> & { initialPassword?: string }): Promise<{ message: string; flat: Flat; credentials?: any }> {
+    return this.request<{ message: string; flat: Flat; credentials?: any }>('/members/flats', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+  }
+
   async updateResident(flatNumber: string, data: Partial<Flat>): Promise<{ message: string; flat: Flat }> {
     return this.request<{ message: string; flat: Flat }>(`/members/flats/${flatNumber}`, {
       method: 'PATCH',
       body: JSON.stringify(data)
+    });
+  }
+
+  async deleteFlat(flatNumber: string): Promise<{ message: string }> {
+    return this.request<{ message: string }>(`/members/flats/${flatNumber}`, {
+      method: 'DELETE'
     });
   }
 

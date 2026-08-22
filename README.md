@@ -18,33 +18,6 @@
 |:---:|:---:|
 | ![Dashboard](screenshots/dashboard.png) | ![Income](screenshots/income-management.png) |
 
-| Expense Management | Maintenance Billing & Dues |
-|:---:|:---:|
-| ![Expenses](screenshots/expense-management.png) | ![Maintenance](screenshots/maintenance-billing.png) |
-
-| Reserve & Emergency Funds | Audit Reports & Statements |
-|:---:|:---:|
-| ![Reserve Funds](screenshots/reserve-funds.png) | ![Audit Reports](screenshots/audit-reports.png) |
-
-| Flats & Residents Directory | Notice Board & Circulars |
-|:---:|:---:|
-| ![Members](screenshots/members-directory.png) | ![Notices](screenshots/notice-board.png) |
-
-| Admin Financial Controls |
-|:---:|
-| ![Admin Controls](screenshots/admin-controls.png) |
-
-### Resident Self-Service Portal
-
-| My Flat & Payment Status | Fund Summary & Expenses |
-|:---:|:---:|
-| ![My Flat](screenshots/resident-my-flat.png) | ![Fund Summary](screenshots/resident-fund-summary.png) |
-
-| Download Financial Reports | Society Notices & Circulars |
-|:---:|:---:|
-| ![Reports](screenshots/resident-reports.png) | ![Notices](screenshots/resident-notices.png) |
-
----
 
 ## ✨ Key Features & Modules
 
@@ -429,20 +402,7 @@ npm run seed
 
 ---
 
-## 📊 Codebase Statistics
 
-| Metric | Value |
-|--------|-------|
-| **Total Source Files** | 69 |
-| **Total Lines of Code** | ~11,000 |
-| **Frontend Components** | 14 |
-| **Frontend Pages** | 11 |
-| **Backend Controllers** | 15 |
-| **API Route Modules** | 15 |
-| **Database Entities** | 14 |
-| **API Endpoints** | 40+ |
-
----
 
 ## 🔒 Security Features
 
@@ -505,12 +465,4 @@ The backend implements a **dual-mode data layer** that provides zero-configurati
 
 ---
 
-## 📄 License
 
-This project is private and intended for housing society financial management use.
-
----
-
-<p align="center">
-  Built with ❤️ for transparent housing society governance.
-</p>

@@ -6,11 +6,12 @@ interface AuthContextType {
   user: User | null;
   role: UserRole;
   isLoading: boolean;
-  login: (identifier: string, password?: string) => Promise<void>;
+  login: (identifier: string, password: string) => Promise<void>;
   register: (data: { name: string; email: string; password?: string; flatNumber: string; phone?: string; role?: string }) => Promise<void>;
   logout: () => void;
   switchRole: (role: UserRole, flatNumber?: string) => Promise<void>;
   switchFlat: (flatNumber: string) => Promise<void>;
+  changePassword: (newPassword: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -47,7 +48,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     initAuth();
   }, []);
 
-  const login = async (identifier: string, password: string = 'password123') => {
+  const login = async (identifier: string, password: string) => {
     setIsLoading(true);
     try {
       const data = await api.login(identifier, password);
@@ -96,8 +97,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await switchRole('resident', flatNumber);
   };
 
+  const changePassword = async (newPassword: string) => {
+    setIsLoading(true);
+    try {
+      const res = await api.changePassword(newPassword);
+      setUser(res.user);
+      setRole(res.user.role === 'treasurer' ? 'admin' : res.user.role);
+    } catch (error) {
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, role, isLoading, login, register, logout, switchRole, switchFlat }}>
+    <AuthContext.Provider value={{ user, role, isLoading, login, register, logout, switchRole, switchFlat, changePassword }}>
       {children}
     </AuthContext.Provider>
   );

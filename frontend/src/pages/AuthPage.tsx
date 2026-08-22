@@ -11,32 +11,32 @@ import {
   FileText,
   TrendingUp,
   ArrowRight,
-  Sparkles,
   AlertCircle,
   Eye,
   EyeOff,
-  UserCheck
+  UserCheck,
+  Shield
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/ToastNotification';
 
 export const AuthPage: React.FC = () => {
-  const { login, register, switchRole } = useAuth();
+  const { login, register } = useAuth();
   const { showToast } = useToast();
   const [tab, setTab] = useState<'login' | 'signup'>('login');
   
   // Login form state
-  const [loginIdentifier, setLoginIdentifier] = useState('admin@greenwood.com');
-  const [loginPassword, setLoginPassword] = useState('password123');
+  const [loginIdentifier, setLoginIdentifier] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   
   // Signup form state
   const [signupName, setSignupName] = useState('');
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
-  const [signupFlat, setSignupFlat] = useState('A-301');
+  const [signupFlat, setSignupFlat] = useState('');
   const [signupPhone, setSignupPhone] = useState('');
-  const [signupRole, setSignupRole] = useState<'resident' | 'admin'>('resident');
+  const [signupRole, setSignupRole] = useState<'resident' | 'admin'>('admin');
   
   // Status states
   const [error, setError] = useState<string | null>(null);
@@ -47,13 +47,19 @@ export const AuthPage: React.FC = () => {
     e.preventDefault();
     setError(null);
     setSuccessMsg(null);
+
+    if (!loginIdentifier.trim() || !loginPassword.trim()) {
+      setError('Please enter both Email/Flat Number and Password.');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      await login(loginIdentifier, loginPassword);
-      showToast('success', '✅ Login Successful!', `Welcome back! Redirecting to your dashboard...`, 3500);
+      await login(loginIdentifier.trim(), loginPassword);
+      showToast('success', '✅ Login Successful!', `Welcome back! Opening your portal...`, 3500);
     } catch (err: any) {
-      const errMsg = err.message || 'Login failed. Please check your credentials.';
+      const errMsg = err.message || 'Login failed. Please verify your credentials.';
       setError(errMsg);
       showToast('error', '❌ Login Failed', errMsg, 5000);
     } finally {
@@ -65,14 +71,19 @@ export const AuthPage: React.FC = () => {
     e.preventDefault();
     setError(null);
     setSuccessMsg(null);
-    setIsSubmitting(true);
 
     if (!signupName.trim() || !signupEmail.trim() || !signupPassword.trim()) {
-      setError('Please fill in all required fields.');
+      setError('Full Name, Email Address, and Password are required.');
       showToast('warning', '⚠️ Missing Fields', 'Please fill in all required fields.', 4000);
-      setIsSubmitting(false);
       return;
     }
+
+    if (signupPassword.length < 6) {
+      setError('Password must be at least 6 characters long.');
+      return;
+    }
+
+    setIsSubmitting(true);
 
     try {
       await register({
@@ -94,20 +105,6 @@ export const AuthPage: React.FC = () => {
     }
   };
 
-  const handleQuickLogin = async (targetRole: 'admin' | 'resident', flatNo?: string) => {
-    setError(null);
-    setIsSubmitting(true);
-    try {
-      await switchRole(targetRole, flatNo);
-      showToast('success', '✅ Quick Login Successful!', `Signed in as ${targetRole === 'admin' ? 'Committee Admin' : `Resident (Flat ${flatNo})`}`, 3500);
-    } catch (err: any) {
-      setError('Quick login failed. Please try the regular login form.');
-      showToast('error', '❌ Quick Login Failed', 'Please try the regular login form instead.', 5000);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   return (
     <div style={{
       minHeight: '100vh',
@@ -120,12 +117,12 @@ export const AuthPage: React.FC = () => {
     }}>
       <div style={{
         width: '100%',
-        maxWidth: '1080px',
+        maxWidth: '1020px',
         background: '#ffffff',
         borderRadius: '24px',
         boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.18), 0 0 0 1px rgba(15, 23, 42, 0.05)',
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
         overflow: 'hidden'
       }}>
         {/* Left Side: Brand Showcase & Value Props */}
@@ -157,17 +154,17 @@ export const AuthPage: React.FC = () => {
                   SocietyFund
                 </h1>
                 <span style={{ fontSize: '0.78rem', color: '#94a3b8', fontWeight: 500 }}>
-                  Housing Society Transparency Portal
+                  Housing Society Financial Transparency Platform
                 </span>
               </div>
             </div>
 
-            <h2 style={{ fontSize: '1.85rem', fontWeight: 800, lineHeight: 1.25, marginBottom: '1.25rem', color: '#f8fafc' }}>
+            <h2 style={{ fontSize: '1.75rem', fontWeight: 800, lineHeight: 1.3, marginBottom: '1.25rem', color: '#f8fafc' }}>
               Real-Time Financial Visibility & Audit-Ready Governance
             </h2>
 
-            <p style={{ fontSize: '0.925rem', color: '#cbd5e1', lineHeight: 1.6, marginBottom: '2.5rem' }}>
-              Empowering residential cooperative societies with automated maintenance invoicing, tamper-evident digital ledgers, live reserve fund monitoring, and single-click statutory balance sheets.
+            <p style={{ fontSize: '0.9rem', color: '#cbd5e1', lineHeight: 1.6, marginBottom: '2.5rem' }}>
+              A modern cooperative accounting portal for housing societies. Real-time expense ledgers, monthly maintenance dues collection, statutory reserve funds tracking, and instant certified receipts.
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
@@ -176,7 +173,7 @@ export const AuthPage: React.FC = () => {
                   <ShieldCheck size={18} color="#34d399" />
                 </div>
                 <span style={{ fontSize: '0.875rem', color: '#e2e8f0', fontWeight: 500 }}>
-                  Role-Based Security (Admin, Treasurer & Resident Access)
+                  Role-Based Access for Managing Committee & Resident Members
                 </span>
               </div>
 
@@ -185,7 +182,7 @@ export const AuthPage: React.FC = () => {
                   <FileText size={18} color="#38bdf8" />
                 </div>
                 <span style={{ fontSize: '0.875rem', color: '#e2e8f0', fontWeight: 500 }}>
-                  Instant Certified PDF Maintenance Receipts & Audit Statements
+                  Certified PDF Maintenance Receipts & Audit Balance Sheets
                 </span>
               </div>
 
@@ -194,7 +191,7 @@ export const AuthPage: React.FC = () => {
                   <TrendingUp size={18} color="#fbbf24" />
                 </div>
                 <span style={{ fontSize: '0.875rem', color: '#e2e8f0', fontWeight: 500 }}>
-                  Live Sinking Fund & Emergency Reserve Allocations
+                  Statutory Sinking Fund & Emergency Reserve Allocations
                 </span>
               </div>
             </div>
@@ -209,8 +206,8 @@ export const AuthPage: React.FC = () => {
             justifyContent: 'space-between'
           }}>
             <div>
-              <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#f1f5f9' }}>Greenwood Heights CHS Ltd.</div>
-              <div style={{ fontSize: '0.725rem', color: '#94a3b8' }}>Reg: BOM/HSG/10948/2018 | Navi Mumbai</div>
+              <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#f1f5f9' }}>Co-op Housing Society Ltd.</div>
+              <div style={{ fontSize: '0.725rem', color: '#94a3b8' }}>Real-time Digital Ledger System</div>
             </div>
             <span style={{
               background: 'rgba(16, 185, 129, 0.2)',
@@ -226,8 +223,8 @@ export const AuthPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Right Side: Auth Forms & Instant Demo Switcher */}
-        <div style={{ padding: '3rem 2.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+        {/* Right Side: Auth Forms */}
+        <div style={{ padding: '3rem 2.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
           <div>
             {/* Tab Selector */}
             <div style={{
@@ -273,7 +270,7 @@ export const AuthPage: React.FC = () => {
                   transition: 'all 0.2s ease'
                 }}
               >
-                New Resident Registration
+                Register New Account
               </button>
             </div>
 
@@ -317,23 +314,24 @@ export const AuthPage: React.FC = () => {
             {/* LOGIN FORM */}
             {tab === 'login' ? (
               <form onSubmit={handleLoginSubmit}>
-                <div style={{ marginBottom: '1.15rem' }}>
+                <div style={{ marginBottom: '1.25rem' }}>
                   <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>
-                    Flat Number or Registered Email
+                    Email Address or Flat Number
                   </label>
                   <div style={{ position: 'relative' }}>
                     <div style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }}>
-                      <Home size={18} />
+                      <Mail size={18} />
                     </div>
                     <input
                       type="text"
-                      placeholder="e.g. A-402, B-201 or admin@greenwood.com"
+                      placeholder="e.g. yourname@example.com or flat A-101"
                       value={loginIdentifier}
                       onChange={e => setLoginIdentifier(e.target.value)}
                       required
+                      autoFocus
                       style={{
                         width: '100%',
-                        padding: '0.7rem 0.75rem 0.7rem 2.5rem',
+                        padding: '0.75rem 0.75rem 0.75rem 2.5rem',
                         fontSize: '0.875rem',
                         border: '1px solid #cbd5e1',
                         borderRadius: '10px',
@@ -343,33 +341,25 @@ export const AuthPage: React.FC = () => {
                       }}
                     />
                   </div>
-                  <span style={{ fontSize: '0.725rem', color: '#64748b', marginTop: '0.3rem', display: 'block' }}>
-                    Tip: Enter your flat number (e.g. <code>A-101</code>, <code>A-402</code>, <code>B-201</code>) or email.
-                  </span>
                 </div>
 
                 <div style={{ marginBottom: '1.5rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
-                    <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#334155' }}>
-                      Password
-                    </label>
-                    <span style={{ fontSize: '0.725rem', color: '#0f766e', fontWeight: 600 }}>
-                      Demo: password123
-                    </span>
-                  </div>
+                  <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>
+                    Password
+                  </label>
                   <div style={{ position: 'relative' }}>
                     <div style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }}>
                       <Lock size={18} />
                     </div>
                     <input
                       type={showPassword ? 'text' : 'password'}
-                      placeholder="Enter password"
+                      placeholder="Enter your secure password"
                       value={loginPassword}
                       onChange={e => setLoginPassword(e.target.value)}
                       required
                       style={{
                         width: '100%',
-                        padding: '0.7rem 2.5rem 0.7rem 2.5rem',
+                        padding: '0.75rem 2.5rem 0.75rem 2.5rem',
                         fontSize: '0.875rem',
                         border: '1px solid #cbd5e1',
                         borderRadius: '10px',
@@ -402,13 +392,13 @@ export const AuthPage: React.FC = () => {
                   disabled={isSubmitting}
                   style={{
                     width: '100%',
-                    padding: '0.8rem',
+                    padding: '0.85rem',
                     background: 'linear-gradient(135deg, #0f766e 0%, #0d9488 100%)',
                     color: '#ffffff',
                     border: 'none',
                     borderRadius: '10px',
                     fontWeight: 700,
-                    fontSize: '0.925rem',
+                    fontSize: '0.95rem',
                     cursor: isSubmitting ? 'not-allowed' : 'pointer',
                     display: 'flex',
                     alignItems: 'center',
@@ -418,9 +408,9 @@ export const AuthPage: React.FC = () => {
                     transition: 'transform 0.15s ease, opacity 0.15s ease'
                   }}
                 >
-                  {isSubmitting ? 'Authenticating...' : (
+                  {isSubmitting ? 'Signing in...' : (
                     <>
-                      <span>Sign In to Dashboard</span>
+                      <span>Sign In to Society Portal</span>
                       <ArrowRight size={18} />
                     </>
                   )}
@@ -436,7 +426,7 @@ export const AuthPage: React.FC = () => {
                     </label>
                     <input
                       type="text"
-                      placeholder="e.g. Sunil Deshmukh"
+                      placeholder="e.g. Rajesh Sharma"
                       value={signupName}
                       onChange={e => setSignupName(e.target.value)}
                       required
@@ -454,14 +444,13 @@ export const AuthPage: React.FC = () => {
 
                   <div>
                     <label style={{ display: 'block', fontSize: '0.775rem', fontWeight: 600, color: '#334155', marginBottom: '0.3rem' }}>
-                      Flat / Unit No. *
+                      Flat / Unit No. (Optional)
                     </label>
                     <input
                       type="text"
-                      placeholder="e.g. A-301"
+                      placeholder="e.g. A-101"
                       value={signupFlat}
                       onChange={e => setSignupFlat(e.target.value)}
-                      required
                       style={{
                         width: '100%',
                         padding: '0.65rem',
@@ -481,7 +470,7 @@ export const AuthPage: React.FC = () => {
                   </label>
                   <input
                     type="email"
-                    placeholder="e.g. sunil@example.com"
+                    placeholder="e.g. admin@society.com"
                     value={signupEmail}
                     onChange={e => setSignupEmail(e.target.value)}
                     required
@@ -504,7 +493,7 @@ export const AuthPage: React.FC = () => {
                     </label>
                     <input
                       type="tel"
-                      placeholder="+91 98200 12345"
+                      placeholder="+91 98000 00000"
                       value={signupPhone}
                       onChange={e => setSignupPhone(e.target.value)}
                       style={{
@@ -521,7 +510,7 @@ export const AuthPage: React.FC = () => {
 
                   <div>
                     <label style={{ display: 'block', fontSize: '0.775rem', fontWeight: 600, color: '#334155', marginBottom: '0.3rem' }}>
-                      Account Role
+                      Account Role *
                     </label>
                     <select
                       value={signupRole}
@@ -537,22 +526,23 @@ export const AuthPage: React.FC = () => {
                         boxSizing: 'border-box'
                       }}
                     >
-                      <option value="resident">Resident Member</option>
-                      <option value="admin">Managing Committee</option>
+                      <option value="admin">Managing Committee (Admin / Treasurer)</option>
+                      <option value="resident">Resident Member / Owner</option>
                     </select>
                   </div>
                 </div>
 
                 <div style={{ marginBottom: '1.25rem' }}>
                   <label style={{ display: 'block', fontSize: '0.775rem', fontWeight: 600, color: '#334155', marginBottom: '0.3rem' }}>
-                    Password *
+                    Create Password * (min 6 characters)
                   </label>
                   <input
                     type="password"
-                    placeholder="Create a secure password"
+                    placeholder="Choose a secure password"
                     value={signupPassword}
                     onChange={e => setSignupPassword(e.target.value)}
                     required
+                    minLength={6}
                     style={{
                       width: '100%',
                       padding: '0.65rem',
@@ -570,13 +560,13 @@ export const AuthPage: React.FC = () => {
                   disabled={isSubmitting}
                   style={{
                     width: '100%',
-                    padding: '0.8rem',
+                    padding: '0.85rem',
                     background: 'linear-gradient(135deg, #059669 0%, #10b981 100%)',
                     color: '#ffffff',
                     border: 'none',
                     borderRadius: '10px',
                     fontWeight: 700,
-                    fontSize: '0.925rem',
+                    fontSize: '0.95rem',
                     cursor: isSubmitting ? 'not-allowed' : 'pointer',
                     display: 'flex',
                     alignItems: 'center',
@@ -587,86 +577,13 @@ export const AuthPage: React.FC = () => {
                 >
                   {isSubmitting ? 'Registering Account...' : (
                     <>
-                      <span>Complete Registration</span>
+                      <span>Create Account & Enter Portal</span>
                       <UserCheck size={18} />
                     </>
                   )}
                 </button>
               </form>
             )}
-          </div>
-
-          {/* Quick Demo Access Bar */}
-          <div style={{
-            marginTop: '2rem',
-            paddingTop: '1.5rem',
-            borderTop: '1px dashed #cbd5e1'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.75rem' }}>
-              <Sparkles size={16} color="#0f766e" />
-              <span style={{ fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#475569' }}>
-                Instant Evaluation Demo Access
-              </span>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.5rem' }}>
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('admin')}
-                style={{
-                  padding: '0.55rem 0.65rem',
-                  background: '#f8fafc',
-                  border: '1px solid #cbd5e1',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  transition: 'all 0.15s ease'
-                }}
-                onMouseEnter={e => (e.currentTarget.style.borderColor = '#0f766e')}
-                onMouseLeave={e => (e.currentTarget.style.borderColor = '#cbd5e1')}
-              >
-                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#0f172a' }}>👑 Committee Admin</div>
-                <div style={{ fontSize: '0.675rem', color: '#64748b' }}>Treasurer (A-101)</div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('resident', 'A-402')}
-                style={{
-                  padding: '0.55rem 0.65rem',
-                  background: '#f8fafc',
-                  border: '1px solid #cbd5e1',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  transition: 'all 0.15s ease'
-                }}
-                onMouseEnter={e => (e.currentTarget.style.borderColor = '#0f766e')}
-                onMouseLeave={e => (e.currentTarget.style.borderColor = '#cbd5e1')}
-              >
-                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#0f172a' }}>🏡 Resident Owner</div>
-                <div style={{ fontSize: '0.675rem', color: '#64748b' }}>Priya (Flat A-402)</div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('resident', 'B-201')}
-                style={{
-                  padding: '0.55rem 0.65rem',
-                  background: '#f8fafc',
-                  border: '1px solid #cbd5e1',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  transition: 'all 0.15s ease'
-                }}
-                onMouseEnter={e => (e.currentTarget.style.borderColor = '#0f766e')}
-                onMouseLeave={e => (e.currentTarget.style.borderColor = '#cbd5e1')}
-              >
-                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#0f172a' }}>🏢 Resident Tenant</div>
-                <div style={{ fontSize: '0.675rem', color: '#64748b' }}>Vikram (Flat B-201)</div>
-              </button>
-            </div>
           </div>
         </div>
       </div>

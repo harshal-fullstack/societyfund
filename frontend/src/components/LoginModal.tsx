@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, LogIn, Key, User, Home, AlertCircle } from 'lucide-react';
+import { X, LogIn, AlertCircle, Lock, Mail } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from './ToastNotification';
 
@@ -14,17 +14,23 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
   const { login } = useAuth();
   const { showToast } = useToast();
   const [identifier, setIdentifier] = useState('');
-  const [password, setPassword] = useState('password123');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    if (!identifier.trim() || !password.trim()) {
+      setError('Please enter both Email/Flat Number and Password.');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      await login(identifier, password);
+      await login(identifier.trim(), password);
       showToast('success', '✅ Login Successful!', `Welcome! Redirecting to your dashboard...`, 3500);
       onClose();
     } catch (err: any) {
@@ -42,7 +48,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
         <div className="modal-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
             <LogIn size={20} color="var(--primary-600)" />
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 800 }}>Resident / Committee Login</h3>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 800 }}>Resident / Committee Sign In</h3>
           </div>
           <button onClick={onClose} style={{ color: 'var(--text-muted)' }}>
             <X size={20} />
@@ -74,15 +80,12 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
               <input
                 type="text"
                 className="form-input"
-                placeholder="e.g. B-201 or resident@greenwood.com"
+                placeholder="e.g. A-101 or user@example.com"
                 value={identifier}
                 onChange={e => setIdentifier(e.target.value)}
                 required
                 autoFocus
               />
-              <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-                Any society resident can enter their flat number (e.g. <code>A-101</code>, <code>B-301</code>)
-              </p>
             </div>
 
             <div className="form-group">
@@ -90,13 +93,11 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
               <input
                 type="password"
                 className="form-input"
+                placeholder="Enter password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 required
               />
-              <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-                Default demo pass: <code>password123</code>
-              </p>
             </div>
           </div>
 

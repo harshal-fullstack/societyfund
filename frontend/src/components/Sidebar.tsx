@@ -59,7 +59,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
       <div>
         <div style={{ marginBottom: '1rem', padding: '0 0.75rem' }}>
           <p style={{ fontSize: '0.6875rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-            {role === 'resident' ? `Resident Portal • Flat ${user?.flatNumber || 'A-402'}` : 'Treasurer Financial Suite'}
+            {role === 'resident' ? (user?.flatNumber && user.flatNumber !== 'N/A' ? `Resident Portal • Flat ${user.flatNumber}` : 'Resident Member Portal') : 'Treasurer Financial Suite'}
           </p>
         </div>
 

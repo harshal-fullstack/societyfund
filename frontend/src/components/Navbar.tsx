@@ -1,13 +1,29 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Building2,
   LogOut,
-  Home
+  User as UserIcon,
+  Shield
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { api } from '../services/api';
+import { SocietyInfo } from '../types';
 
 export const Navbar: React.FC = () => {
   const { user, role, logout } = useAuth();
+  const [societyInfo, setSocietyInfo] = useState<SocietyInfo | null>(null);
+
+  useEffect(() => {
+    const loadInfo = async () => {
+      try {
+        const info = await api.getSocietyInfo();
+        setSocietyInfo(info);
+      } catch (e) {
+        // quiet fallback
+      }
+    };
+    loadInfo();
+  }, []);
 
   return (
     <header className="navbar">
@@ -44,7 +60,7 @@ export const Navbar: React.FC = () => {
             </span>
           </div>
           <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', lineHeight: 1 }}>
-            Greenwood Heights CHS Ltd. • FY 2026-27
+            {societyInfo?.societyName || 'Housing Society Ledger'} • FY {societyInfo?.financialYear || '2026-27'}
           </p>
         </div>
       </div>
@@ -69,19 +85,36 @@ export const Navbar: React.FC = () => {
 
         {/* Current Role Indicator / Profile Badge */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-          <img
-            src={user?.avatar || (role === 'admin' ? 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&auto=format&fit=crop&q=80' : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80')}
-            alt="User Avatar"
-            style={{ width: '32px', height: '32px', borderRadius: 'var(--radius-full)', border: '1px solid var(--border-light)', objectFit: 'cover' }}
-          />
+          {user?.avatar ? (
+            <img
+              src={user.avatar}
+              alt="User Avatar"
+              style={{ width: '32px', height: '32px', borderRadius: 'var(--radius-full)', border: '1px solid var(--border-light)', objectFit: 'cover' }}
+            />
+          ) : (
+            <div style={{
+              width: '32px',
+              height: '32px',
+              borderRadius: 'var(--radius-full)',
+              background: 'var(--primary-100)',
+              color: 'var(--primary-700)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontWeight: 700,
+              fontSize: '0.85rem'
+            }}>
+              {user?.name ? user.name[0].toUpperCase() : 'U'}
+            </div>
+          )}
 
           <div style={{ textAlign: 'left', lineHeight: 1.2 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
               <span style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                {user?.name || (role === 'admin' ? 'Rajesh Sharma' : 'Resident')}
+                {user?.name || (role === 'admin' ? 'Managing Committee' : 'Resident')}
               </span>
               <span className={`badge ${role === 'admin' ? 'badge-primary' : 'badge-paid'}`} style={{ fontSize: '0.6rem', padding: '0.1rem 0.35rem' }}>
-                {role === 'admin' ? 'TREASURER' : `FLAT ${user?.flatNumber || 'A-402'}`}
+                {role === 'admin' ? 'TREASURER / ADMIN' : (user?.flatNumber && user.flatNumber !== 'N/A' ? `FLAT ${user.flatNumber}` : 'RESIDENT')}
               </span>
             </div>
             <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
@@ -104,4 +137,3 @@ export const Navbar: React.FC = () => {
     </header>
   );
 };
-

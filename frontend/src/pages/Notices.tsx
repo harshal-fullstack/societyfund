@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Bell,
   Pin,
@@ -10,40 +10,80 @@ import {
   AlertTriangle,
   Info,
   Wrench,
-  Users
+  Users,
+  Trash2
 } from 'lucide-react';
-import { initialNotices, Notice } from '../data/notices';
+import { api } from '../services/api';
+import { Notice } from '../types';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../components/ToastNotification';
 
 export const Notices: React.FC = () => {
   const { role, user } = useAuth();
-  const [notices, setNotices] = useState<Notice[]>(initialNotices);
+  const { showToast } = useToast();
+  const [notices, setNotices] = useState<Notice[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [isLoading, setIsLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
 
   // New Notice Form
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState<'urgent' | 'maintenance' | 'meeting' | 'general'>('general');
   const [content, setContent] = useState('');
 
-  const handleCreateNotice = (e: React.FormEvent) => {
+  const fetchNotices = async () => {
+    try {
+      const data = await api.getNotices();
+      setNotices(data || []);
+    } catch (e) {
+      console.error('Failed to load notices', e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotices();
+  }, []);
+
+  const handleCreateNotice = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !content) return;
+    if (!title.trim() || !content.trim()) return;
 
-    const newNotice: Notice = {
-      id: `not_${Date.now()}`,
-      title,
-      date: new Date().toISOString().split('T')[0],
-      category,
-      issuedBy: `${user?.name || 'Managing Committee'}`,
-      content,
-      pinned: category === 'urgent'
-    };
+    setIsPublishing(true);
+    try {
+      const created = await api.createNotice({
+        title: title.trim(),
+        content: content.trim(),
+        category,
+        issuedBy: user?.name || 'Managing Committee',
+        pinned: category === 'urgent',
+        date: new Date().toISOString().split('T')[0]
+      });
 
-    setNotices([newNotice, ...notices]);
-    setTitle('');
-    setContent('');
-    setIsCreateModalOpen(false);
+      setNotices(prev => [created, ...prev]);
+      showToast('success', '📢 Notice Published', `Notice "${title}" published to notice board!`, 3500);
+      setTitle('');
+      setContent('');
+      setIsCreateModalOpen(false);
+    } catch (err: any) {
+      showToast('error', '❌ Failed to Publish', err.message || 'Error publishing notice', 5000);
+    } finally {
+      setIsPublishing(false);
+    }
+  };
+
+  const handleDeleteNotice = async (id: string) => {
+    if (!window.confirm('Delete this circular from the notice board?')) return;
+
+    try {
+      await api.deleteNotice(id);
+      setNotices(prev => prev.filter(n => n._id !== id && (n as any).id !== id));
+      showToast('success', '🗑️ Notice Deleted', 'Circular removed successfully.', 3000);
+    } catch (err: any) {
+      showToast('error', '❌ Delete Failed', err.message || 'Failed to delete notice', 5000);
+    }
   };
 
   const filteredNotices = notices.filter(
@@ -108,48 +148,85 @@ export const Notices: React.FC = () => {
 
       {/* Notices Grid */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        {filteredNotices.map((notice) => (
-          <div
-            key={notice.id}
-            className="card"
-            style={{
-              borderLeft: notice.pinned ? '4px solid var(--primary-600)' : notice.category === 'urgent' ? '4px solid var(--danger-solid)' : '1px solid var(--border-light)',
-              padding: '1.25rem'
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                {notice.pinned && (
-                  <span style={{ color: 'var(--primary-600)', display: 'flex', alignItems: 'center', gap: '0.2rem', fontSize: '0.75rem', fontWeight: 700 }}>
-                    <Pin size={14} /> Pinned
-                  </span>
-                )}
-                {getCategoryBadge(notice.category)}
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                <Calendar size={13} />
-                <span>{new Date(notice.date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</span>
-              </div>
-            </div>
-
-            <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
-              {notice.title}
-            </h3>
-
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '0.85rem' }}>
-              {notice.content}
-            </p>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-light)', paddingTop: '0.65rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                <UserCheck size={14} color="var(--primary-600)" />
-                <span>Issued by: <strong>{notice.issuedBy}</strong></span>
-              </div>
-              <span style={{ fontStyle: 'italic' }}>Greenwood Heights CHS</span>
-            </div>
+        {isLoading ? (
+          <div className="card" style={{ textAlign: 'center', padding: '2.5rem' }}>
+            <p style={{ color: 'var(--text-muted)' }}>Loading society notices...</p>
           </div>
-        ))}
+        ) : filteredNotices.length === 0 ? (
+          <div className="card" style={{ textAlign: 'center', padding: '3.5rem 1rem', color: 'var(--text-muted)' }}>
+            <Bell size={32} style={{ margin: '0 auto 0.75rem', opacity: 0.4 }} />
+            <p style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-secondary)' }}>No Circulars Published Yet</p>
+            <p style={{ fontSize: '0.8rem', marginTop: '0.25rem' }}>
+              {role === 'admin'
+                ? 'Click "Publish New Notice" above to post an announcement for all members.'
+                : 'There are no active notices on the notice board right now.'}
+            </p>
+          </div>
+        ) : (
+          filteredNotices.map((notice) => {
+            const noticeId = notice._id || (notice as any).id || '';
+            return (
+              <div
+                key={noticeId}
+                className="card"
+                style={{
+                  borderLeft: notice.pinned ? '4px solid var(--primary-600)' : notice.category === 'urgent' ? '4px solid var(--danger-solid)' : '1px solid var(--border-light)',
+                  padding: '1.25rem'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                    {notice.pinned && (
+                      <span style={{ color: 'var(--primary-600)', display: 'flex', alignItems: 'center', gap: '0.2rem', fontSize: '0.75rem', fontWeight: 700 }}>
+                        <Pin size={14} /> Pinned
+                      </span>
+                    )}
+                    {getCategoryBadge(notice.category)}
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                      <Calendar size={13} />
+                      <span>{new Date(notice.date || notice.createdAt || Date.now()).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+                    </div>
+
+                    {role === 'admin' && (
+                      <button
+                        onClick={() => handleDeleteNotice(noticeId)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: 'var(--text-muted)',
+                          cursor: 'pointer',
+                          padding: '0.2rem'
+                        }}
+                        title="Delete Notice"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
+                  {notice.title}
+                </h3>
+
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '0.85rem' }}>
+                  {notice.content}
+                </p>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-light)', paddingTop: '0.65rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                    <UserCheck size={14} color="var(--primary-600)" />
+                    <span>Issued by: <strong>{notice.issuedBy}</strong></span>
+                  </div>
+                  <span style={{ fontStyle: 'italic' }}>Society Notice Board</span>
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
 
       {/* Publish Notice Modal (Admin Only) */}
@@ -169,21 +246,22 @@ export const Notices: React.FC = () => {
             <form onSubmit={handleCreateNotice}>
               <div className="modal-body">
                 <div className="form-group">
-                  <label className="form-label">Notice Title</label>
+                  <label className="form-label">Notice Title *</label>
                   <input
                     type="text"
                     className="form-input"
-                    placeholder="e.g. Lift Maintenance Schedule on Saturday"
+                    placeholder="e.g. Annual General Body Meeting (AGM) Notice"
                     value={title}
                     onChange={e => setTitle(e.target.value)}
                     required
+                    autoFocus
                   />
                 </div>
 
                 <div className="form-group">
                   <label className="form-label">Category</label>
                   <select
-                    className="form-select"
+                    className="form-input"
                     value={category}
                     onChange={e => setCategory(e.target.value as any)}
                   >
@@ -195,14 +273,15 @@ export const Notices: React.FC = () => {
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Notice Content / Instructions</label>
+                  <label className="form-label">Notice Content / Details *</label>
                   <textarea
-                    className="form-textarea"
+                    className="form-input"
                     rows={4}
-                    placeholder="Write details for all residents..."
+                    placeholder="Write announcement details for all residents..."
                     value={content}
                     onChange={e => setContent(e.target.value)}
                     required
+                    style={{ resize: 'vertical' }}
                   />
                 </div>
               </div>
@@ -211,8 +290,8 @@ export const Notices: React.FC = () => {
                 <button type="button" className="btn btn-secondary" onClick={() => setIsCreateModalOpen(false)}>
                   Cancel
                 </button>
-                <button type="submit" className="btn btn-primary">
-                  Publish to Notice Board
+                <button type="submit" className="btn btn-primary" disabled={isPublishing}>
+                  {isPublishing ? 'Publishing...' : 'Publish to Notice Board'}
                 </button>
               </div>
             </form>

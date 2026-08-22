@@ -30,7 +30,7 @@ interface MyFlatProps {
 
 export const MyFlat: React.FC<MyFlatProps> = ({ onNavigateTab }) => {
   const { user } = useAuth();
-  const flatNumber = user?.flatNumber || 'A-402';
+  const flatNumber = user?.flatNumber || '';
 
   const [flat, setFlat] = useState<Flat | null>(null);
   const [invoices, setInvoices] = useState<MaintenanceInvoice[]>([]);
@@ -42,13 +42,18 @@ export const MyFlat: React.FC<MyFlatProps> = ({ onNavigateTab }) => {
   const [selectedPayInvoice, setSelectedPayInvoice] = useState<MaintenanceInvoice | null>(null);
 
   const fetchFlatDetails = async () => {
+    if (!flatNumber || flatNumber === 'N/A') {
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const [flatRes, societyRes] = await Promise.all([
         api.getFlatByNumber(flatNumber),
         api.getSocietyInfo()
       ]);
       setFlat(flatRes.flat);
-      setInvoices(flatRes.invoices);
+      setInvoices(flatRes.invoices || []);
       setSocietyInfo(societyRes);
     } catch (e) {
       console.error('Failed to load resident flat info', e);
@@ -61,10 +66,36 @@ export const MyFlat: React.FC<MyFlatProps> = ({ onNavigateTab }) => {
     fetchFlatDetails();
   }, [flatNumber]);
 
-  if (isLoading || !flat) {
+  if (isLoading) {
     return (
       <div className="page-body" style={{ textAlign: 'center', padding: '4rem 0' }}>
         <p style={{ color: 'var(--text-muted)' }}>Loading resident flat profile & payment records...</p>
+      </div>
+    );
+  }
+
+  if (!flat) {
+    return (
+      <div className="page-body">
+        <div className="page-header">
+          <div>
+            <h1 className="page-title">My Flat Unit & Payment Status</h1>
+            <p className="page-subtitle">Resident ownership status, billing statements, and payment receipts</p>
+          </div>
+        </div>
+
+        <div className="card" style={{ textAlign: 'center', padding: '3.5rem 1rem', color: 'var(--text-muted)' }}>
+          <Home size={36} style={{ margin: '0 auto 0.75rem', opacity: 0.4 }} />
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
+            No Flat Unit Linked Yet
+          </h3>
+          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', maxWidth: '440px', margin: '0 auto 1.5rem', lineHeight: 1.5 }}>
+            Your account ({user?.email}) is registered, but no specific flat record has been assigned yet.
+          </p>
+          <button className="btn btn-primary" onClick={() => onNavigateTab('dashboard')}>
+            Go to Executive Fund Dashboard
+          </button>
+        </div>
       </div>
     );
   }

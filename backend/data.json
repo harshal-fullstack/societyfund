@@ -46,6 +46,32 @@
       "isActive": true,
       "_id": "usr_1787428104914_5squ",
       "lastLogin": "2026-08-22T20:18:43.607Z"
+    },
+    {
+      "name": "Test Admin",
+      "email": "treasurer_demo@society.com",
+      "password": "$2a$10$Zc7KB5zpAWLPJZXPB.G4U.IAlenzW/zKL.5gMhaEbI2dRh9h60onC",
+      "role": "admin",
+      "flatNumber": "A-101",
+      "phone": "9876543210",
+      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=A-101",
+      "isActive": true,
+      "mustChangePassword": false,
+      "lastLogin": "2026-08-27T09:03:35.527Z",
+      "_id": "usr_1787821415527_rep9"
+    },
+    {
+      "name": "harry",
+      "email": "h@gmail.com",
+      "password": "$2a$10$q/GTmDdgVDeGWE5DS3jyo.zXmZMyQYgMllkmscOFxMSLfVUaEuBwq",
+      "role": "resident",
+      "flatNumber": "B-202",
+      "phone": "9981029383",
+      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=B-202",
+      "isActive": true,
+      "mustChangePassword": false,
+      "lastLogin": "2026-08-27T09:55:32.771Z",
+      "_id": "usr_1787822324463_3gj3"
     }
   ],
   "flats": [
@@ -78,6 +104,38 @@
       "email": "harshalpatil.mh31@gmail.com",
       "monthlyMaintenance": 4500,
       "parkingSlot": "P-B-101",
+      "balanceDue": 0,
+      "isOccupied": true
+    },
+    {
+      "_id": "flat_A101",
+      "flatNumber": "A-101",
+      "wing": "A",
+      "floor": 1,
+      "squareFeet": 1200,
+      "ownerName": "Test Admin",
+      "residentName": "Test Admin",
+      "residentType": "owner",
+      "contactNumber": "9876543210",
+      "email": "treasurer_demo@society.com",
+      "monthlyMaintenance": 4500,
+      "parkingSlot": "P-A-101",
+      "balanceDue": 0,
+      "isOccupied": true
+    },
+    {
+      "_id": "flat_B202",
+      "flatNumber": "B-202",
+      "wing": "B",
+      "floor": 2,
+      "squareFeet": 1200,
+      "ownerName": "harry",
+      "residentName": "harry",
+      "residentType": "owner",
+      "contactNumber": "9981029383",
+      "email": "h@gmail.com",
+      "monthlyMaintenance": 4500,
+      "parkingSlot": "P-B-202",
       "balanceDue": 0,
       "isOccupied": true
     }
